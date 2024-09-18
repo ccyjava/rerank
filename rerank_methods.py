@@ -1,5 +1,6 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from gpt_prompting import gpt_rerank
 
 
 def simple_rerank(doc_list, liked_doc_list, disliked_doc_list):
@@ -33,3 +34,23 @@ def score_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, datas
     all_docs_score = best_liked_doc_similarity - best_disliked_doc_similarity
     ranked_doc_indices = np.argsort(all_docs_score)[::-1]
     return [doc_list[i] for i in ranked_doc_indices]
+
+
+def gpt_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, dataset):
+    # get titles of liked and disliked docs
+    liked_titles = [
+        dataset.df[(dataset.df["Query"] == query) & (dataset.df["MUrlKey"] == doc_id)]["PageTitle"].iloc[0]
+        for doc_id in liked_doc_list
+    ]
+    disliked_titles = [
+        dataset.df[(dataset.df["Query"] == query) & (dataset.df["MUrlKey"] == doc_id)]["PageTitle"].iloc[0]
+        for doc_id in disliked_doc_list
+    ]
+    all_titles = [
+        dataset.df[(dataset.df["Query"] == query) & (dataset.df["MUrlKey"] == doc_id)]["PageTitle"].iloc[0]
+        for doc_id in doc_list
+    ]
+    # print(liked_titles, disliked_titles, all_titles)
+    # generate a new query based on liked and disliked titles
+    # query gpt model with the new query
+    return gpt_rerank(query, liked_titles, disliked_titles, all_titles)
