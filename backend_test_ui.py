@@ -61,7 +61,6 @@ if st.button("Send to API"):
 
     # Display the response
     if response.status_code == 200:
-        reranked_list = response.json().get("reranked_list", [])
-        st.write("Reranked List:", reranked_list)
+        st.write(response.json())
     else:
         st.write("Error:", response.status_code, response.text)
