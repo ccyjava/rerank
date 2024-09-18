@@ -7,6 +7,16 @@ class Dataset:
         self.df = pd.read_csv(file_path, sep="\t")
         self.df["TuringMMTextEmbedding"] = self.df["TuringMMTextEmbedding"].apply(eval)
 
+    def get_doc_embedding(self, query, murl_key):
+        return self.df[(self.df["Query"] == query) & (self.df["MUrlKey"] == murl_key)][
+            "TuringMMTextEmbedding"
+        ].values[0]
+
+    def get_doc_embedding_batch(self, query, murl_keys):
+        return self.df[
+            (self.df["Query"] == query) & (self.df["MUrlKey"].isin(murl_keys))
+        ]["TuringMMTextEmbedding"].values.tolist()
+
     def get_nearest_neighbors(self, query, murl_key, k=5):
         """
         Get the k nearest neighbors of a given (query, murlkey) pair
@@ -15,9 +25,7 @@ class Dataset:
             raise IndexError(f"Query={query} not found in the dataset")
         if murl_key not in self.df[self.df["Query"] == query]["MUrlKey"].values:
             raise IndexError("MUrlKey not found in the dataset for the given query")
-        query_embedding = self.df[self.df["Query"] == query][
-            self.df["MUrlKey"] == murl_key
-        ]["TuringMMTextEmbedding"].values[0]
+        query_embedding = self.get_doc_embedding(query, murl_key)
 
         other_docs = self.df[self.df["Query"] == query][self.df["MUrlKey"] != murl_key]
         if other_docs.empty:
@@ -34,6 +42,7 @@ class Dataset:
         most_similar_doc_indices = cosine_similarities.argsort()[0][::-1][:k]
         most_similar_docs = other_docs.iloc[most_similar_doc_indices]
         return most_similar_docs
+
 
 if __name__ == "__main__":
     dataset = Dataset()
