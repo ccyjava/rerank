@@ -1,12 +1,13 @@
 import requests
-AZURE_OPENAI_API_KEY="378e999d50fc4fc4bc3b88b01134cfa0"
+from dotenv import dotenv_values
 
+config = dotenv_values(".env")
 
 def gpt_rerank(search_query, liked_titles, disliked_titles, all_titles):
     # Configuration
     headers = {
         "Content-Type": "application/json",
-        "api-key": AZURE_OPENAI_API_KEY,
+        "api-key": config["API_KEY"],
     }
 
     # Payload for the request
@@ -28,8 +29,9 @@ def gpt_rerank(search_query, liked_titles, disliked_titles, all_titles):
                         all_titles: ["title1", "title2", "title3", "title4", "title5", "title6", "title7", "title8", "title9", "title10"]
                     }
                     Your task is to generate a ranking of all_titles based on the input provided.
-                    You may consider the similarity of the liked titles and dissimilarity of the disliked titles, 
-                    as well as the original search query.
+                    You may consider the similarity of each title to that of
+                    the liked titles and the dissimilarity to the disliked titles to make your ranking
+                    decisions, as well as the original search query for relevance.
                     The output must be in the following format:
                     {
                         ranked_titles: ["title3", "title1", "title2", "title4", "title5", "title6", "title7", "title8", "title9", "title10"]
@@ -54,13 +56,23 @@ def gpt_rerank(search_query, liked_titles, disliked_titles, all_titles):
         "max_tokens": 1000
     }
 
-    ENDPOINT = "https://ridasgu-aoai.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-02-15-preview"
-
+    endpoint = config["ENDPOINT"]
     # Send request
     try:
-        response = requests.post(ENDPOINT, headers=headers, json=payload)
+        response = requests.post(endpoint, headers=headers, json=payload)
         response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
     except requests.RequestException as e:
         raise SystemExit(f"Failed to make the request. Error: {e}")
 
     return response.json()["choices"][0]["message"]["content"]
+
+
+if __name__ == "__main__":
+    # Example usage
+    search_query = "best programming language"
+    liked_titles = ["Python", "JavaScript"]
+    disliked_titles = ["Java"]
+    all_titles = ["Python", "JavaScript", "Java", "C++", "Ruby", "Go", "Swift", "Kotlin", "Rust", "TypeScript"]
+
+    ranked_titles = gpt_rerank(search_query, liked_titles, disliked_titles, all_titles)
+    print(ranked_titles)
