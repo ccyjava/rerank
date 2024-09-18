@@ -36,7 +36,7 @@ def score_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, datas
     return [doc_list[i] for i in ranked_doc_indices]
 
 
-def gpt_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, dataset):
+def gpt_test_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, dataset):
     # get titles of liked and disliked docs
     liked_titles = [
         dataset.df[(dataset.df["Query"] == query) & (dataset.df["MUrlKey"] == doc_id)]["PageTitle"].iloc[0]

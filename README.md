@@ -16,7 +16,7 @@ query = "test query 1"
 doc_list = dataset.df[dataset.df["Query"] == query]["MUrlKey"].tolist()
 liked_doc_list = ["key1", "key9", "key7"]
 disliked_doc_list = ["key4", "key6"]
-reranked_list = gpt_based_rerank(
+reranked_list = gpt_test_based_rerank(
     query,
     dataset.df[dataset.df.Query == query]["MUrlKey"].values.tolist(),
     liked_doc_list,
