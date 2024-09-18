@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/api/rank', methods=['POST'])
+@app.route('/api/rank', methods=['POST','GET'])
 def rank_docs():
     # Extract data from the request
     data = request.json
