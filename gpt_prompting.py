@@ -1,6 +1,7 @@
 import requests
 from dotenv import dotenv_values
 
+global config
 config = dotenv_values(".env")
 
 def gpt_rerank(search_query, liked_titles, disliked_titles, all_titles):

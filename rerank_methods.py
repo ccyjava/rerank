@@ -1,6 +1,6 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from gpt_prompting import gpt_rerank
+# from gpt_prompting import gpt_rerank
 
 
 def simple_rerank(doc_list, liked_doc_list, disliked_doc_list):
