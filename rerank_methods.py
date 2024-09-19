@@ -1,5 +1,6 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from dataset_utils import Dataset
 # from gpt_prompting import gpt_rerank
 
 
@@ -10,12 +11,13 @@ def simple_rerank(doc_list, liked_doc_list, disliked_doc_list):
     return [doc["doc_id"] for doc in liked_docs + neutral_docs]
 
 
-def score_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, dataset):
+def score_based_rerank(query, doc_list, liked_doc_list, disliked_doc_list, dataset: Dataset):
     # Need to boost the ranking of documents that are similar to liked documents,
-    embeddings_liked_docs = dataset.get_doc_embedding_batch(query, liked_doc_list)
-    embeddings_disliked_docs = dataset.get_doc_embedding_batch(query, disliked_doc_list) 
+    embeddings_liked_docs = dataset.get_doc_embedding_batch(liked_doc_list)
+    embeddings_disliked_docs = dataset.get_doc_embedding_batch(disliked_doc_list) 
     # Need to penalize the ranking of documents that are similar to disliked documents
-    all_embeddings = dataset.get_doc_embedding_batch(query, doc_list)
+    all_embeddings = dataset.get_doc_embedding_batch(doc_list)
+    print("Debugging: ", all_embeddings.shape, embeddings_liked_docs.shape, embeddings_disliked_docs.shape)
     
     if liked_doc_list:
         # Calculate similarity between all_embeddings and embeddings_liked_docs, and take the highest distance
