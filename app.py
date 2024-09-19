@@ -7,7 +7,7 @@ from rerank_methods import simple_rerank, score_based_rerank
 app = Flask(__name__)
 CORS(app)
 global dataset
-dataset = Dataset("dataset/data.tsv")
+dataset = Dataset("dataset/DocImageTuringMMFeature.tsv")
 
 
 @app.route("/api/rank", methods=["POST", "GET"])
@@ -15,7 +15,7 @@ def rank_docs():
     # Extract data from the request
     data = request.json
     query = data.get("query", "")
-    doc_list = data.get("doc_list", [])
+    doc_list = dataset.get_doc_list(query=query)
     liked_doc_list = data.get("liked_doc_list", [])
     disliked_doc_list = data.get("dislike_doc_list", [])
     liked_others = data.get("liked_others", [])
@@ -25,15 +25,39 @@ def rank_docs():
     if rerank_method == "simple":
         # Implement a simple ranking algorithm
         ranked_doc_list = simple_rerank(doc_list, liked_doc_list, disliked_doc_list)
-    else:
+    elif rerank_method == "score_based":
         ranked_doc_list = score_based_rerank(
             query, doc_list, liked_doc_list, disliked_doc_list, dataset
         )
+    else:
+        print("Invalid rerank method, returning the list as is")
+        ranked_doc_list = doc_list
 
     suggested_query = generate_suggested_query(query, liked_others, disliked_others)
-
+    liked_urls = [
+        dataset.df[dataset.df["doc_id"] == doc_id]["MUrl"].iloc[0]
+        for doc_id in liked_doc_list
+    ]
+    disliked_urls = [
+        dataset.df[dataset.df["doc_id"] == doc_id]["MUrl"].iloc[0]
+        for doc_id in disliked_doc_list
+    ]
     # Prepare the response
-    response = {"ranked_doc_list": ranked_doc_list, "suggested_query": suggested_query}
+    response = {
+        "original_ranked_doc_list": doc_list,
+        "original_ranked_url_list": [
+            dataset.df[dataset.df["doc_id"] == doc_id]["MUrl"].iloc[0]
+            for doc_id in doc_list
+        ],
+        "ranked_doc_list": ranked_doc_list,
+        "suggested_query": suggested_query,
+        "ranked_url_list": [
+            dataset.df[dataset.df["doc_id"] == doc_id]["MUrl"].iloc[0]
+            for doc_id in ranked_doc_list
+        ],
+        "liked_urls": liked_urls,
+        "disliked_urls": disliked_urls,
+    }
 
     return jsonify(response)
 

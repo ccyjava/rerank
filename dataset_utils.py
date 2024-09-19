@@ -10,20 +10,44 @@ class Dataset:
         self.df["TuringMMTextEmbedding"] = self.df["TuringMMv2ImageDecoded"].apply(
             lambda x: [float(i) for i in x.split(" ")] if type(x) == str else x
         )
-        self.df = self.df.dropna() # drop rows with nan in embeddings
+        self.df = self.df.dropna()  # drop rows with nan in embeddings
 
     def __str__(self):
         return str(self.df.head())
 
-    def get_doc_embedding(self, query, doc_id):
-        return self.df[(self.df["Query"] == query) & (self.df["doc_id"] == doc_id)][
-            "TuringMMTextEmbedding"
-        ].values[0]
+    def get_doc_list(self, query=None):
+        if query is None:
+            return self.df["doc_id"].values.tolist()
+        else:
+            return self.df[self.df["Query"] == query]["doc_id"].values.tolist()
 
-    def get_doc_embedding_batch(self, doc_ids):
-        return np.array(self.df[self.df["doc_id"].isin(doc_ids)][
-            "TuringMMTextEmbedding"
-        ].values.tolist())
+    def get_doc_embedding(self, query=None, doc_id=None):
+        if query is not None and doc_id is not None:
+            return self.df[(self.df["Query"] == query) & (self.df["doc_id"] == doc_id)][
+                "TuringMMTextEmbedding"
+            ].values[0]
+        elif doc_id is not None:
+            return self.df[self.df["doc_id"] == doc_id]["TuringMMTextEmbedding"].values[
+                0
+            ]
+        else:
+            raise ValueError("Either query and doc_id or doc_id must be provided")
+
+    def get_doc_embedding_batch(self, query=None, doc_ids=None):
+        if doc_ids is not None:
+            return np.array(
+                self.df[self.df["doc_id"].isin(doc_ids)][
+                    "TuringMMTextEmbedding"
+                ].values.tolist()
+            )
+        elif query is not None and doc_ids is not None:
+            return np.array(
+                self.df[self.df["Query"] == query & self.df["doc_id"].isin(doc_ids)][
+                    "TuringMMTextEmbedding"
+                ].values.tolist()
+            )
+        else:
+            raise ValueError("Either doc_ids or query must be provided")
 
     def get_nearest_neighbors(self, query, doc_id, k=5):
         """
