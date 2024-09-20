@@ -4,13 +4,17 @@ import numpy as np
 
 
 class Dataset:
-    def __init__(self, file_path="dataset/data.tsv"):
-        self.df = pd.read_csv(file_path, sep="\t")
-        self.df["doc_id"] = ["d" + str(x) for x in self.df.index.to_list()]
-        self.df["TuringMMTextEmbedding"] = self.df["TuringMMv2ImageDecoded"].apply(
-            lambda x: [float(i) for i in x.split(" ")] if type(x) == str else x
-        )
-        self.df = self.df.dropna()  # drop rows with nan in embeddings
+    def __init__(self, file_path="dataset/data.tsv", preprocessed=False):
+        if preprocessed:
+            self.df = pd.read_csv(file_path)
+            self.df["TuringMMTextEmbedding"] = self.df["TuringMMTextEmbedding"].apply(lambda x: eval(x))
+        else:
+            self.df = pd.read_csv(file_path, sep="\t")
+            self.df["doc_id"] = ["d" + str(x) for x in self.df.index.to_list()]
+            self.df["TuringMMTextEmbedding"] = self.df["TuringMMv2ImageDecoded"].apply(
+                lambda x: [float(i) for i in x.split(" ")] if type(x) == str else x
+            )
+            self.df = self.df.dropna()  # drop rows with nan in embeddings
 
     def __str__(self):
         return str(self.df.head())

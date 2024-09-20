@@ -2,3 +2,6 @@
 .env
 __pycache__/*
 .cache_*
+dataset/Original_Image_Results_TextEmb.tsv
+dataset/DocImageTuringMMFeature.tsv
+dataset/data.tsv

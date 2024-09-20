@@ -7,7 +7,7 @@ from rerank_methods import simple_rerank, score_based_rerank
 app = Flask(__name__)
 CORS(app)
 global dataset
-dataset = Dataset("dataset/DocImageTuringMMFeature.tsv")
+dataset = Dataset("dataset/DocImageTuringMMFeature_Processed.csv", preprocessed=True)
 
 
 @app.route("/api/rank", methods=["POST", "GET"])
@@ -26,6 +26,7 @@ def rank_docs():
         # Implement a simple ranking algorithm
         ranked_doc_list = simple_rerank(doc_list, liked_doc_list, disliked_doc_list)
     elif rerank_method == "score_based":
+        print(liked_doc_list, disliked_doc_list)
         ranked_doc_list = score_based_rerank(
             query, doc_list, liked_doc_list, disliked_doc_list, dataset
         )

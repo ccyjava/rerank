@@ -19,8 +19,10 @@ def score_based_rerank(
     dataset: Dataset,
     original_order_weight=2.0,
     liked_doc_weight=1.0,
-    disliked_doc_weight=10.0,
+    disliked_doc_weight=1.0,
+    method="average",  # average, max
 ):
+    print(query, liked_doc_list, disliked_doc_list)
     # Need to boost the ranking of documents that are similar to liked documents,
     # and penalize the ranking of documents that are similar to disliked documents
     embeddings_liked_docs = dataset.get_doc_embedding_batch(
@@ -38,30 +40,40 @@ def score_based_rerank(
         embeddings_disliked_docs.shape,
     )
 
-    if liked_doc_list:
-        # Calculate similarity between all_embeddings and embeddings_liked_docs, and take the highest distance
-        liked_docs_similarities = cosine_similarity(
-            all_embeddings, embeddings_liked_docs
-        )
-        best_liked_doc_similarity = np.max(liked_docs_similarities, axis=1)
-    else:
-        best_liked_doc_similarity = np.zeros(len(doc_list))
-    if disliked_doc_list:
-        # Calculate similarity between all_embeddings and embeddings_disliked_docs
-        dislked_docs_similarities = cosine_similarity(
-            all_embeddings, embeddings_disliked_docs
-        )
-        best_disliked_doc_similarity = np.max(dislked_docs_similarities, axis=1)
-    else:
-        best_disliked_doc_similarity = np.zeros(len(doc_list))
+    if method == "average":
+        embeddings_liked_docs = np.mean(embeddings_liked_docs, axis=0)
+        embeddings_disliked_docs = np.mean(embeddings_disliked_docs, axis=0)
+        similarity_score_liked = cosine_similarity(
+            all_embeddings, [embeddings_liked_docs]
+        ).flatten()
+        similarity_score_disliked = cosine_similarity(
+            all_embeddings, [embeddings_disliked_docs]
+        ).flatten()
+    elif method == "max":
+        if liked_doc_list:
+            # Calculate similarity between all_embeddings and embeddings_liked_docs, and take the highest distance
+            liked_docs_similarities = cosine_similarity(
+                all_embeddings, embeddings_liked_docs
+            )
+            similarity_score_liked = np.max(liked_docs_similarities, axis=1)
+        else:
+            similarity_score_liked = np.zeros(len(doc_list))
+        if disliked_doc_list:
+            # Calculate similarity between all_embeddings and embeddings_disliked_docs
+            dislked_docs_similarities = cosine_similarity(
+                all_embeddings, embeddings_disliked_docs
+            )
+            similarity_score_disliked = np.max(dislked_docs_similarities, axis=1)
+        else:
+            similarity_score_disliked = np.zeros(len(doc_list))
 
     # Calculate the score for each document
     ranks = np.arange(len(doc_list))
     rank_scores = np.exp(-ranks)
     all_docs_score = (
         original_order_weight * rank_scores
-        + liked_doc_weight * best_liked_doc_similarity
-        - disliked_doc_weight * best_disliked_doc_similarity
+        + liked_doc_weight * similarity_score_liked
+        - disliked_doc_weight * similarity_score_disliked
     )
     for ldoc in liked_doc_list:
         all_docs_score[doc_list.index(ldoc)] += 1e3
