@@ -1,2 +1,5 @@
 Flask
 Flask-Cors==5.0.0
+streamlit
+pandas
+scikit-learn

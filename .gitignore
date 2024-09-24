@@ -1,0 +1,10 @@
+*.pyc
+.env
+__pycache__/*
+.cache_*
+dataset/Original_Image_Results_TextEmb.tsv
+dataset/DocImageTuringMMFeature.tsv
+dataset/data.tsv
+dataset/DocImageTuringMMFeature_Processed.csv
+dataset/DocImageTuringMMFeature_Processed.tsv
+dataset/data.tsv
